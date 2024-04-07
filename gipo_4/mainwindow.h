@@ -23,10 +23,16 @@ private:
     QImage reference_image, transformed_image;
 public slots:
     void openImage();
+
     void sliderChanged(int);
     void sliderChanged2(int);
+    void sliderChanged3(int);
+    void sliderChanged4(int);
+
     void rasterImageShiftXY(QImage &src, QImage &dst, int v);
-    void setMatrix(int x, int y);
+    void scaleImage(QImage &src, QImage &dst, int v);
+    void setMatrixForRasterShift(int x, int y);
+    void setMatrixForScaling(int x, int y);
     void multipleMatrix();
 };
 #endif // MAINWINDOW_H
