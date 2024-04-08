@@ -188,27 +188,6 @@ void MainWindow::sliderChanged4(int v)
     }
 }
 
-void closet(int x, int y, QImage &src)
-{
-
-      if (x - 1 < src.width() && y + 1 < src.height() && x - 1 >= 0 && y + 1 >= 0)
-        {
-            src.setPixel(x - 1, y + 1, src.pixel(x, y));
-
-        }
-
-      if (x - 1 < src.width() && y - 1 < src.height() && x - 1 >= 0 && y - 1 >= 0)
-      {
-          src.setPixel(x - 1, y - 1, src.pixel(x, y));
-
-      }
-
-      if (x + 1 < src.width() && y + 1 < src.height() && x + 1 >= 0 && y + 1 >= 0)
-      {
-          src.setPixel(x + 1 , y + 1 , src.pixel(x, y));
-
-      }
-}
 
 void MainWindow::scaleImage(QImage &src, QImage &dst, int v)
 {
@@ -216,40 +195,52 @@ void MainWindow::scaleImage(QImage &src, QImage &dst, int v)
 
 
     int scaleValue = ui->horizontalSlider_3->value();
-    if(scaleValue >= 1)
+    if(scaleValue > 1)
     {
-        ui->image->resize(src.width() * scaleValue,src.height() * scaleValue );
+        ui->image->resize(src.width() * scaleValue, src.height() * scaleValue);
         image = QImage(src.width() * scaleValue, src.height() * scaleValue, QImage::Format_RGB888);
-    }
-    else
-    if(scaleValue != 0)
-    {
-        ui->image->resize(src.width() * scaleValue,src.height() * scaleValue );
-        image = QImage(src.width() * scaleValue, src.height() * scaleValue, QImage::Format_RGB888);
-    }
 
-    for (int y = 0; y < src.height(); ++y)
-    {
-        for (int x = 0; x < src.width(); ++x)
+        for (int y = 0; y < src.height(); ++y)
         {
-            setMatrixForScaling(x,y);
-            multipleMatrix();
-            int newX = result[0][0];
-            int newY = result[1][0];
-            if(scaleValue < 0)
+            for (int x = 0; x < src.width(); ++x)
             {
-                newX = std::clamp(abs(result[0][0]),1,image.width());
-                newY = std::clamp(abs(result[1][0]),1,image.height());
-            }
+                setMatrixForScaling(x,y);
+                multipleMatrix();
+                int newX = result[0][0];
+                int newY = result[1][0];
 
-            if (newX >= 0 && newX < image.width() && newY >= 0 && newY < image.height())
-            {
-                image.setPixel(newX, newY, src.pixel(x, y));
+                if (newX >= 0 && newX < image.width() && newY >= 0 && newY < image.height())
+                {
+                    image.setPixel(newX, newY, src.pixel(x, y));
+                }
             }
         }
+
+        for (int y = 0; y < image.height(); ++y)
+        {
+            for (int x = 0; x < image.width(); ++x)
+            {
+                int originalX = x / scaleValue;
+                int originalY = y / scaleValue;
+
+                originalX = std::min(originalX, src.width() - 1);
+                originalY = std::min(originalY, src.height() - 1);
+
+                image.setPixel(x, y, src.pixel(originalX, originalY));
+            }
+        }
+
     }
-
-
+    else if(scaleValue == 0 || scaleValue == 1)
+    {
+        ui->image->resize(src.width() * 1, src.height() * 1 );
+        image = QImage(src.width() * 1, src.height() * 1, QImage::Format_RGB888);
+        image = reference_image;
+        ui->image->setPixmap(QPixmap::fromImage(image));
+    }
     ui->image->setPixmap(QPixmap::fromImage(image));
+
+
+
 }
 
