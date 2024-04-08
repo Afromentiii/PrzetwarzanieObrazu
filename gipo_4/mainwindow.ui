@@ -53,7 +53,7 @@
      <item>
       <widget class="QSlider" name="horizontalSlider_3">
        <property name="minimum">
-        <number>0</number>
+        <number>-4</number>
        </property>
        <property name="maximum">
         <number>4</number>

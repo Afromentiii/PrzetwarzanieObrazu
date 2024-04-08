@@ -126,6 +126,7 @@ void MainWindow::setMatrixForScaling(int x, int y)
     result[2][0] = 1;
 }
 
+
 void MainWindow::rasterImageShiftXY(QImage &src, QImage &dst, int v)
 {
     ui->horizontalSlider->setMinimum(-reference_image.width());
@@ -229,6 +230,7 @@ void MainWindow::scaleImage(QImage &src, QImage &dst, int v)
                 image.setPixel(x, y, src.pixel(originalX, originalY));
             }
         }
+        ui->image->setPixmap(QPixmap::fromImage(image));
 
     }
     else if(scaleValue == 0 || scaleValue == 1)
@@ -238,7 +240,32 @@ void MainWindow::scaleImage(QImage &src, QImage &dst, int v)
         image = reference_image;
         ui->image->setPixmap(QPixmap::fromImage(image));
     }
-    ui->image->setPixmap(QPixmap::fromImage(image));
+    else if( scaleValue < 0 && scaleValue != -1)
+    {
+
+        ui->image->resize(src.width() / abs(scaleValue), src.height() / abs(scaleValue));
+        image = QImage(src.width() / abs(scaleValue), src.height() / abs(scaleValue), QImage::Format_RGB888);
+        int width_ratio = src.width() / image.width();
+        int height_ratio = src.height() / image.height();
+
+        for (int y = 0; y < image.height(); ++y)
+        {
+            for (int x = 0; x < image.width(); ++x)
+            {
+
+                int originalX = x * width_ratio;
+                int originalY = y * height_ratio;
+
+                image.setPixel(x, y, src.pixel(originalX, originalY));
+            }
+        }
+
+
+
+        ui->image->setPixmap(QPixmap::fromImage(image));
+
+    }
+
 
 
 
