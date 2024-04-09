@@ -31,7 +31,9 @@ public slots:
 
     void rasterImageShiftXY(QImage &src, QImage &dst, int v);
     void scaleImage(QImage &src, QImage &dst, int v);
+    void rotateImage(QImage &src, QImage &dst);
     void setMatrixForRasterShift(int x, int y);
+    void setMatrixForRotate(int x, int y);
     void setMatrixForScaling(int x, int y);
     void multipleMatrix();
 };

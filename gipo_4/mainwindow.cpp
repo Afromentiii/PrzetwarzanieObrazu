@@ -2,6 +2,8 @@
 #include "./ui_mainwindow.h"
 #include <QPixmap>
 #include <QFileDialog>
+#include <cmath>
+#include <QtMath>
 
 
 QImage last_change_image;
@@ -66,6 +68,9 @@ int result[3][1] = {{0},
                     {0},
                     {1}};
 
+
+
+
 void MainWindow::multipleMatrix()
 {
     for (int i = 0; i < 3; ++i) {
@@ -126,6 +131,11 @@ void MainWindow::setMatrixForScaling(int x, int y)
     result[2][0] = 1;
 }
 
+void MainWindow::setMatrixForRotate(int x, int y)
+{
+    ;
+}
+
 
 void MainWindow::rasterImageShiftXY(QImage &src, QImage &dst, int v)
 {
@@ -184,7 +194,7 @@ void MainWindow::sliderChanged4(int v)
     if (!reference_image.isNull())
     {
         transformed_image = reference_image;
-        scaleImage(reference_image, transformed_image, v);
+        rotateImage(reference_image, transformed_image);
         ui->image->setPixmap(QPixmap::fromImage(transformed_image));
     }
 }
@@ -260,14 +270,37 @@ void MainWindow::scaleImage(QImage &src, QImage &dst, int v)
             }
         }
 
-
-
         ui->image->setPixmap(QPixmap::fromImage(image));
 
     }
-
-
-
-
 }
+
+void MainWindow::rotateImage(QImage &src, QImage &dst)
+{
+    dst.fill(Qt::white);
+
+    qreal angle = ui->horizontalSlider_4->value();
+    qreal angleRad = qDegreesToRadians(angle);
+
+    qreal centerX = src.width() / 2.0;
+    qreal centerY = src.height() / 2.0;
+
+    for (int y = 0; y < dst.height(); ++y)
+    {
+        for (int x = 0; x < dst.width(); ++x)
+        {
+            qreal srcX = (x - centerX) * qCos(angleRad) - (y - centerY) * qSin(angleRad) + centerX;
+            qreal srcY = (x - centerX) * qSin(angleRad) + (y - centerY) * qCos(angleRad) + centerY;
+
+            int nearestX = qRound(srcX);
+            int nearestY = qRound(srcY);
+
+            if (nearestX >= 0 && nearestX < src.width() && nearestY >= 0 && nearestY < src.height())
+            {
+                dst.setPixel(x, y, src.pixel(nearestX, nearestY));
+            }
+        }
+    }
+}
+
 
