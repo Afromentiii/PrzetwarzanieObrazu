@@ -1,7 +1,15 @@
 #include "glwidget.h"
 #include <QFile>
 #include <QTextStream>
-
+float lastY = 0.0f;
+float lastX = 0.0f;
+float pitch = 0.0f;
+float yaw = 0.0f;
+bool m_firstMouse = true;
+float m_yaw = -90.0f;
+float m_pitch = 0.0f;
+float m_lastX = 400.0f;
+float m_lastY = 300.0f;
 class Frame
 {
 public:
@@ -42,18 +50,24 @@ public:
     glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);
     glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
     glm::vec3 cameraUp    = glm::vec3(0.0f, 1.0f,  0.0f);
+    float cameraAngle = 179.0f;
 
 };
 
 
 Camera camera = Camera();
 
+
+void rotateLocalX(float angle)
+{
+    ;
+}
+
 GLWidget::GLWidget() { }
 
 void GLWidget::keyPressEvent(QKeyEvent *event)
 {
-    const float cameraSpeed = 0.05f; // adjust accordingly
-
+    const float cameraSpeed = 0.05f;
     if (event->key() == Qt::Key_W)
         camera.cameraPos += cameraSpeed * camera.cameraFront;
     if (event->key() == Qt::Key_S)
@@ -65,11 +79,13 @@ void GLWidget::keyPressEvent(QKeyEvent *event)
     if (event->key() == Qt::Key_D)
         camera.cameraPos += glm::cross(camera.cameraFront, camera.cameraUp) * cameraSpeed;
 
-
+    update();
 }
 
 void GLWidget::initializeGL()
 {
+    lastX = float(width() / 2.0f);
+    lastY = float(height() / 2.0f);
     initializeOpenGLFunctions();
     programs["basic_shader"] = new GLSLProgram();
     programs["basic_shader"]->compileShaderFromFile("./shaders/shader.vert", GL_VERTEX_SHADER);
@@ -122,9 +138,50 @@ void GLWidget::resizeGL(int w, int h)
 
 void GLWidget::mouseMoveEvent(QMouseEvent *e)
 {
-    pos_x = e->pos().x();
-    pos_y =  e->pos().y();
+    // Współrzędne środka sceny
+    int sceneCenterX = width() / 2;
+    int sceneCenterY = height() / 2;
+
+    if (m_firstMouse) {
+        m_lastX = sceneCenterX; // Ustaw ostatnią pozycję myszy na środek sceny
+        m_lastY = sceneCenterY;
+        m_firstMouse = false;
+    }
+
+    float xOffset = e->pos().x() - m_lastX; // Oblicz przesunięcie myszy względem poprzedniej pozycji
+    float yOffset = m_lastY - e->pos().y();
+    m_lastX = e->pos().x(); // Zapisz bieżącą pozycję myszy
+    m_lastY = e->pos().y();
+
+    const float sensitivity = 0.1f;
+
+    xOffset *= sensitivity;
+    yOffset *= sensitivity;
+
+    m_yaw += xOffset;
+    m_pitch += yOffset;
+
+    if (m_pitch > 89.0f)
+        m_pitch = 89.0f;
+    if (m_pitch < -89.0f)
+        m_pitch = -89.0f;
+
+    if (m_yaw > 360.0f)
+        m_yaw -= 360.0f;
+    if (m_yaw < 0.0f)
+        m_yaw += 360.0f;
+
+    glm::vec3 front;
+    front.x = cos(glm::radians(m_yaw)) * cos(glm::radians(m_pitch));
+    front.y = sin(glm::radians(m_pitch));
+    front.z = sin(glm::radians(m_yaw)) * cos(glm::radians(m_pitch));
+    camera.cameraFront = glm::normalize(front);
+
+    update();
 }
+
+
+
 
 void GLWidget::paintGL()
 {
@@ -139,8 +196,7 @@ void GLWidget::paintGL()
     glm::mat4 model_mat = glm::mat4(1.0);
     glm::mat4 MV = glm::mat4(1.0);
 
-    float aspectRatio = float(width()) / float(height());
-    float fov = 40.0f;
+    float fov = 55.0f;
 
     glm::mat4 projection = glm::mat4(1.0);
     projection = glm::perspective(glm::radians(fov), float(width()) / float(height()), 0.1f, 100.0f);
